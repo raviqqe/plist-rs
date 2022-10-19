@@ -3,6 +3,7 @@ use std::{
     borrow::Borrow,
     collections::{HashMap, HashSet},
     hash::Hash,
+    ops::Index,
 };
 
 #[derive(Clone, Debug)]
@@ -11,6 +12,19 @@ pub struct Map<K, V>(List<(K, V)>);
 impl<K, V> Map<K, V> {
     pub fn new() -> Self {
         Self(Default::default())
+    }
+
+    pub fn get<Q: Eq + ?Sized>(&self, key: &Q) -> Option<&V>
+    where
+        K: Borrow<Q>,
+    {
+        self.0.into_iter().find_map(|(other_key, value)| {
+            if other_key.borrow() == key {
+                Some(value)
+            } else {
+                None
+            }
+        })
     }
 
     pub fn insert(&self, key: K, value: V) -> Self {
@@ -46,6 +60,17 @@ impl<K: Eq + Hash, V> Map<K, V> {
 
     pub fn values(&self) -> impl Iterator<Item = &V> {
         self.into_iter().map(|(_, value)| value)
+    }
+}
+
+impl<Q: Eq + ?Sized, K: Eq, V> Index<&Q> for Map<K, V>
+where
+    K: Borrow<Q>,
+{
+    type Output = V;
+
+    fn index(&self, key: &Q) -> &Self::Output {
+        self.get(key).expect("existent key")
     }
 }
 
@@ -156,6 +181,15 @@ mod tests {
     fn is_empty() {
         assert!(Map::<(), ()>::new().is_empty());
         assert!(!Map::new().insert(1, 1).is_empty());
+    }
+
+    #[test]
+    fn get() {
+        let map = Map::new().insert(1, 2).insert(3, 4);
+
+        assert_eq!(map.get(&1), Some(&2));
+        assert_eq!(map.get(&3), Some(&4));
+        assert_eq!(map.get(&4), None);
     }
 
     #[test]
