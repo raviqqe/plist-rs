@@ -278,6 +278,10 @@ mod tests {
         assert_eq!(format!("{:?}", Map::<(), ()>::new()), "{}");
         assert_eq!(format!("{:?}", Map::new().insert(1, 2)), "{1: 2}");
         assert_eq!(
+            format!("{:?}", Map::new().insert(1, 2)),
+            format!("{:?}", HashMap::<_, _>::from_iter([(1, 2)]))
+        );
+        assert_eq!(
             format!("{:?}", Map::from_iter([(1, 2), (3, 4)])),
             "{3: 4, 1: 2}"
         );
