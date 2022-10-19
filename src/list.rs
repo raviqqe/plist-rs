@@ -58,6 +58,18 @@ impl<T> List<T> {
     }
 }
 
+impl<T> FromIterator<T> for List<T> {
+    fn from_iter<I: IntoIterator<Item = T>>(iterator: I) -> Self {
+        let mut list = List::new();
+
+        for value in iterator {
+            list = list.push_front(value);
+        }
+
+        list
+    }
+}
+
 pub struct ListIterator<'a, T>(&'a Option<Arc<Cons<T>>>);
 
 impl<'a, T> IntoIterator for &'a List<T> {
@@ -127,6 +139,14 @@ mod tests {
                 .copied()
                 .collect::<Vec<_>>(),
             vec![2, 1]
+        );
+    }
+
+    #[test]
+    fn from_iter() {
+        assert_eq!(
+            [1, 2].into_iter().collect::<List<_>>(),
+            List::new().push_front(1).push_front(2)
         );
     }
 }
