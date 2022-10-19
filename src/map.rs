@@ -1,4 +1,4 @@
-use crate::{List, ListIterator};
+use crate::{list, List};
 use std::{
     borrow::Borrow,
     collections::{HashMap, HashSet},
@@ -135,7 +135,7 @@ impl<K, V> FromIterator<(K, V)> for Map<K, V> {
 }
 
 pub struct MapIterator<'a, K: Eq + Hash, V> {
-    iterator: ListIterator<'a, (K, V)>,
+    iterator: list::ListIterator<'a, (K, V)>,
     set: HashSet<&'a K>,
 }
 

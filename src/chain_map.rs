@@ -1,4 +1,4 @@
-use crate::{Map, MapIterator};
+use crate::{map, Map};
 use std::{
     borrow::Borrow,
     collections::{hash_map, HashMap, HashSet},
@@ -19,13 +19,6 @@ impl<K, V> ChainMap<K, V> {
             chain: Default::default(),
             head: head.into(),
         }
-    }
-
-    pub fn get<Q: Eq + ?Sized>(&self, key: &Q) -> Option<&V>
-    where
-        K: Borrow<Q>,
-    {
-        self.chain.get(key).or_else(|| self.head.get(key))
     }
 
     pub fn insert(&self, key: K, value: V) -> Self {
@@ -58,6 +51,13 @@ impl<K: Eq + Hash, V> ChainMap<K, V> {
         self.chain.is_empty() && self.head.is_empty()
     }
 
+    pub fn get<Q: Eq + Hash + ?Sized>(&self, key: &Q) -> Option<&V>
+    where
+        K: Borrow<Q>,
+    {
+        self.chain.get(key).or_else(|| self.head.get(key))
+    }
+
     pub fn contains_key<Q: Eq + ?Sized>(&self, key: &Q) -> bool
     where
         K: Borrow<Q>,
@@ -74,7 +74,7 @@ impl<K: Eq + Hash, V> ChainMap<K, V> {
     }
 }
 
-impl<Q: Eq + ?Sized, K: Eq, V> Index<&Q> for ChainMap<K, V>
+impl<Q: Eq + Hash + ?Sized, K: Eq + Hash, V> Index<&Q> for ChainMap<K, V>
 where
     K: Borrow<Q>,
 {
@@ -145,7 +145,7 @@ impl<K: Eq + Hash, V> FromIterator<(K, V)> for ChainMap<K, V> {
 }
 
 pub struct ChainMapIterator<'a, K: Eq + Hash, V> {
-    chain_iterator: MapIterator<'a, K, V>,
+    chain_iterator: map::MapIterator<'a, K, V>,
     head_iterator: hash_map::Iter<'a, K, V>,
     set: HashSet<&'a K>,
 }
@@ -186,5 +186,217 @@ impl<'a, K: Eq + Hash, V> Iterator for ChainMapIterator<'a, K, V> {
         } else {
             None
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::collections::BTreeMap;
+
+    #[test]
+    fn new() {
+        ChainMap::<(), ()>::new(Default::default());
+    }
+
+    #[test]
+    fn equal() {
+        assert_eq!(
+            ChainMap::<(), ()>::new(Default::default()),
+            ChainMap::new(Default::default())
+        );
+        assert_ne!(
+            ChainMap::new(Default::default()),
+            ChainMap::new(Default::default()).insert(42, 42)
+        );
+        assert_eq!(
+            ChainMap::new(Default::default()).insert(42, 42),
+            ChainMap::new(Default::default()).insert(42, 42)
+        );
+        assert_eq!(
+            ChainMap::new(Default::default()).insert(42, 42),
+            ChainMap::new(Default::default())
+                .insert(42, 42)
+                .insert(42, 42)
+        );
+        assert_ne!(
+            ChainMap::new(Default::default()).insert(1, 1),
+            ChainMap::new(Default::default()).insert(1, 1).insert(2, 2)
+        );
+        assert_eq!(
+            ChainMap::new(Default::default()).insert(2, 2).insert(1, 1),
+            ChainMap::new(Default::default()).insert(1, 1).insert(2, 2)
+        );
+        assert_eq!(
+            ChainMap::new([(2, 2)].into_iter().collect()).insert(1, 1),
+            ChainMap::new(Default::default()).insert(1, 1).insert(2, 2)
+        );
+        assert_eq!(
+            ChainMap::new([(1, 1), (2, 2)].into_iter().collect()),
+            ChainMap::new(Default::default()).insert(1, 1).insert(2, 2)
+        );
+    }
+
+    #[test]
+    fn len() {
+        assert_eq!(ChainMap::<(), ()>::new(Default::default()).len(), 0);
+        assert_eq!(ChainMap::new(Default::default()).insert(1, 1).len(), 1);
+        assert_eq!(
+            ChainMap::new(Default::default())
+                .insert(1, 1)
+                .insert(1, 1)
+                .len(),
+            1
+        );
+        assert_eq!(
+            ChainMap::new(Default::default())
+                .insert(1, 1)
+                .insert(2, 2)
+                .len(),
+            2
+        );
+        assert_eq!(
+            ChainMap::new([(1, 1)].into_iter().collect())
+                .insert(1, 1)
+                .len(),
+            1
+        );
+        assert_eq!(
+            ChainMap::new([(1, 1)].into_iter().collect())
+                .insert(2, 2)
+                .len(),
+            2
+        );
+    }
+
+    #[test]
+    fn is_empty() {
+        assert!(ChainMap::<(), ()>::new(Default::default()).is_empty());
+        assert!(!ChainMap::new(Default::default()).insert(1, 1).is_empty());
+        assert!(!ChainMap::new([(1, 1)].into_iter().collect()).is_empty());
+    }
+
+    #[test]
+    fn get() {
+        let map = ChainMap::new(Default::default()).insert(1, 2).insert(3, 4);
+
+        assert_eq!(map.get(&1), Some(&2));
+        assert_eq!(map.get(&3), Some(&4));
+        assert_eq!(map.get(&4), None);
+    }
+
+    #[test]
+    fn get_from_head() {
+        let map = ChainMap::new([(1, 2)].into_iter().collect()).insert(3, 4);
+
+        assert_eq!(map.get(&1), Some(&2));
+        assert_eq!(map.get(&3), Some(&4));
+        assert_eq!(map.get(&4), None);
+    }
+
+    #[test]
+    fn contains() {
+        assert!(ChainMap::new(Default::default())
+            .insert(1, 1)
+            .insert(2, 2)
+            .contains_key(&2));
+        assert!(ChainMap::new([(1, 1)].into_iter().collect())
+            .insert(1, 1)
+            .contains_key(&1));
+        assert!(ChainMap::new([(1, 1)].into_iter().collect())
+            .insert(2, 2)
+            .contains_key(&2));
+    }
+
+    #[test]
+    fn insert_many() {
+        assert_eq!(
+            ChainMap::new(Default::default())
+                .insert(1, 1)
+                .insert(2, 2)
+                .into_iter()
+                .collect::<Vec<_>>(),
+            ChainMap::new(Default::default())
+                .insert_many([(1, 1), (2, 2)])
+                .into_iter()
+                .collect::<Vec<_>>(),
+        );
+    }
+
+    #[test]
+    fn into_iter() {
+        assert_eq!(
+            ChainMap::new(Default::default())
+                .insert(1, 1)
+                .insert(2, 2)
+                .into_iter()
+                .collect::<HashSet<_>>(),
+            [(&1, &1), (&2, &2)].into_iter().collect()
+        );
+    }
+
+    #[test]
+    fn into_iter_duplicates() {
+        assert_eq!(
+            ChainMap::new(Default::default())
+                .insert(1, 1)
+                .insert(1, 1)
+                .into_iter()
+                .count(),
+            1
+        );
+        assert_eq!(
+            ChainMap::new([(1, 1)].into_iter().collect())
+                .insert(1, 1)
+                .insert(1, 1)
+                .into_iter()
+                .count(),
+            1
+        );
+    }
+
+    #[test]
+    fn from_iter() {
+        assert_eq!(
+            ChainMap::from_iter([(1, 1), (2, 2)]),
+            ChainMap::from_iter([(1, 1), (2, 2)]),
+        );
+    }
+
+    #[test]
+    fn debug() {
+        assert_eq!(
+            format!("{:?}", ChainMap::<(), ()>::new(Default::default())),
+            "{}"
+        );
+        assert_eq!(
+            format!("{:?}", ChainMap::new(Default::default()).insert(1, 2)),
+            "{1: 2}"
+        );
+        assert_eq!(
+            format!(
+                "{:?}",
+                ChainMap::new(Default::default()).insert_many([(1, 2), (3, 4)])
+            ),
+            "{3: 4, 1: 2}"
+        );
+        assert_eq!(
+            format!(
+                "{:?}",
+                ChainMap::new(Default::default()).insert_many([(1, 2), (3, 4), (5, 6)])
+            ),
+            "{5: 6, 3: 4, 1: 2}"
+        );
+
+        assert_eq!(
+            format!(
+                "{:?}",
+                ChainMap::new([(5, 6)].into_iter().collect()).insert_many([(3, 4), (1, 2)])
+            ),
+            format!(
+                "{:?}",
+                BTreeMap::<_, _>::from_iter([(1, 2), (3, 4), (5, 6)])
+            )
+        );
     }
 }
