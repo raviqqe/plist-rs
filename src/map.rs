@@ -75,12 +75,6 @@ impl<K: Eq + Hash, V: PartialEq> PartialEq for Map<K, V> {
     }
 }
 
-// impl<K, V> PartialOrd for Map<K, V> {
-//     fn partial_cmp() -> bool {
-//         true
-//     }
-// }
-
 impl<K, V> FromIterator<(K, V)> for Map<K, V> {
     fn from_iter<I: IntoIterator<Item = (K, V)>>(iterator: I) -> Self {
         Self(List::from_iter(iterator))
