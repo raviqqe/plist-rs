@@ -79,19 +79,22 @@ where
     }
 }
 
-impl<K, V> Clone for Map<K, V> {
+impl<K, V> Clone for ChainMap<K, V> {
     fn clone(&self) -> Self {
-        Self(self.0.clone())
+        Self {
+            chain: self.chain.clone(),
+            head: self.head.clone(),
+        }
     }
 }
 
-impl<K, V> Default for Map<K, V> {
+impl<K, V> Default for ChainMap<K, V> {
     fn default() -> Self {
-        Self::new()
+        Self::new(Default::default())
     }
 }
 
-impl<K: Debug + Eq + Hash, V: Debug> Debug for Map<K, V> {
+impl<K: Debug + Eq + Hash, V: Debug> Debug for ChainMap<K, V> {
     fn fmt(&self, formatter: &mut Formatter) -> fmt::Result {
         write!(formatter, "{{")?;
 
