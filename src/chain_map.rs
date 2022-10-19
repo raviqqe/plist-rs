@@ -146,7 +146,7 @@ impl<K: Eq + Hash, V> FromIterator<(K, V)> for ChainMap<K, V> {
 
 pub struct ChainMapIterator<'a, K: Eq + Hash, V> {
     chain_iterator: MapIterator<'a, K, V>,
-    head_iterator: hash_map::IntoIter<K, V>,
+    head_iterator: hash_map::Iter<'a, K, V>,
     set: HashSet<&'a K>,
 }
 
@@ -157,7 +157,7 @@ impl<'a, K: Eq + Hash, V> IntoIterator for &'a ChainMap<K, V> {
     fn into_iter(self) -> Self::IntoIter {
         ChainMapIterator {
             chain_iterator: self.chain.into_iter(),
-            head_iterator: self.head.into_iter(),
+            head_iterator: self.head.iter(),
             set: Default::default(),
         }
     }
@@ -167,7 +167,15 @@ impl<'a, K: Eq + Hash, V> Iterator for ChainMapIterator<'a, K, V> {
     type Item = (&'a K, &'a V);
 
     fn next(&mut self) -> Option<Self::Item> {
-        if let Some((key, value)) = self.iterator.next() {
+        if let Some((key, value)) = self.chain_iterator.next() {
+            if self.set.contains(key) {
+                return self.next();
+            }
+
+            self.set.insert(key);
+
+            Some((key, value))
+        } else if let Some((key, value)) = self.head_iterator.next() {
             if self.set.contains(key) {
                 return self.next();
             }
