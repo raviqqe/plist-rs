@@ -1,6 +1,6 @@
 use std::{borrow::Borrow, rc::Rc};
 
-#[derive(Clone, Debug, Eq, PartialEq, PartialOrd, Ord)]
+#[derive(Debug, Eq, PartialEq, PartialOrd, Ord)]
 pub struct List<T> {
     cons: Option<Rc<Cons<T>>>,
     size: usize,
@@ -39,6 +39,16 @@ impl<T> List<T> {
         }
     }
 
+    pub fn push_front_many(&self, iterator: impl IntoIterator<Item = T>) -> Self {
+        let mut list = self.clone();
+
+        for value in iterator {
+            list = list.push_front(value);
+        }
+
+        list
+    }
+
     pub fn pop_front(&self) -> Self {
         if let Some(cons) = &self.cons {
             Self {
@@ -58,6 +68,15 @@ impl<T> List<T> {
     }
 }
 
+impl<T> Clone for List<T> {
+    fn clone(&self) -> Self {
+        Self {
+            cons: self.cons.clone(),
+            size: self.size,
+        }
+    }
+}
+
 impl<T> Default for List<T> {
     fn default() -> Self {
         Self::new()
@@ -66,13 +85,7 @@ impl<T> Default for List<T> {
 
 impl<T> FromIterator<T> for List<T> {
     fn from_iter<I: IntoIterator<Item = T>>(iterator: I) -> Self {
-        let mut list = List::new();
-
-        for value in iterator {
-            list = list.push_front(value);
-        }
-
-        list
+        Self::new().push_front_many(iterator)
     }
 }
 
@@ -141,6 +154,14 @@ mod tests {
     #[test]
     fn contains() {
         assert!(List::new().push_front(1).push_front(2).contains(&2),);
+    }
+
+    #[test]
+    fn push_front_many() {
+        assert_eq!(
+            List::new().push_front(1).push_front(2),
+            List::new().push_front_many([1, 2]),
+        );
     }
 
     #[test]
