@@ -45,7 +45,13 @@ impl<K, V> ChainMap<K, V> {
 
 impl<K: Eq + Hash, V> ChainMap<K, V> {
     pub fn len(&self) -> usize {
-        self.chain.len() + self.head.len()
+        let mut set = HashSet::new();
+
+        for key in self.keys() {
+            set.insert(key);
+        }
+
+        set.len()
     }
 
     pub fn is_empty(&self) -> bool {
@@ -112,9 +118,7 @@ impl<K: Debug + Eq + Hash, V: Debug> Debug for ChainMap<K, V> {
     }
 }
 
-impl<K: Eq + Hash, V: Eq> Eq for Map<K, V> {}
-
-impl<K: Eq + Hash, V: PartialEq> PartialEq for Map<K, V> {
+impl<K: Eq + Hash, V: PartialEq> PartialEq for ChainMap<K, V> {
     fn eq(&self, other: &Self) -> bool {
         let set = self.into_iter().collect::<HashMap<_, _>>();
 
@@ -131,6 +135,8 @@ impl<K: Eq + Hash, V: PartialEq> PartialEq for Map<K, V> {
         true
     }
 }
+
+impl<K: Eq + Hash, V: Eq> Eq for ChainMap<K, V> {}
 
 impl<K, V> FromIterator<(K, V)> for Map<K, V> {
     fn from_iter<I: IntoIterator<Item = (K, V)>>(iterator: I) -> Self {
