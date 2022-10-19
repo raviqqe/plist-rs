@@ -1,4 +1,4 @@
-use std::{borrow::Borrow, sync::Rc};
+use std::{borrow::Borrow, rc::Rc};
 
 #[derive(Clone, Debug, Eq, PartialEq, PartialOrd, Ord)]
 pub struct List<T> {
