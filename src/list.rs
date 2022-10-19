@@ -1,6 +1,6 @@
 use std::{borrow::Borrow, sync::Arc};
 
-#[derive(Clone, Debug, Default, Eq, PartialEq, PartialOrd, Ord)]
+#[derive(Clone, Debug, Eq, PartialEq, PartialOrd, Ord)]
 pub struct List<T> {
     cons: Option<Arc<Cons<T>>>,
     size: usize,
@@ -54,7 +54,13 @@ impl<T> List<T> {
     where
         T: Borrow<S>,
     {
-        self.into_iter().any(|element| element.borrow() == value)
+        self.into_iter().any(|other| other.borrow() == value)
+    }
+}
+
+impl<T> Default for List<T> {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
