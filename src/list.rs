@@ -1,4 +1,4 @@
-use std::sync::Arc;
+use std::{borrow::Borrow, sync::Arc};
 
 #[derive(Clone, Debug, Default, Eq, PartialEq, PartialOrd, Ord)]
 pub struct List<T> {
@@ -29,6 +29,24 @@ impl<T> List<T> {
             .into(),
             size: self.size + 1,
         }
+    }
+
+    pub fn pop_front(&self) -> Self {
+        if let Some(cons) = &self.cons {
+            Self {
+                cons: cons.tail.clone(),
+                size: self.size - 1,
+            }
+        } else {
+            Self::new()
+        }
+    }
+
+    pub fn contains<S: Eq + ?Sized>(&self, value: &S) -> bool
+    where
+        T: Borrow<S>,
+    {
+        self.into_iter().any(|element| element.borrow() == value)
     }
 }
 
@@ -71,6 +89,11 @@ mod tests {
         assert_ne!(List::new(), List::new().push_front(42));
         assert_eq!(List::<()>::new(), List::new());
         assert_eq!(List::new().push_front(42), List::new().push_front(42));
+    }
+
+    #[test]
+    fn contains() {
+        assert!(List::new().push_front(1).push_front(2).contains(&2),);
     }
 
     #[test]
