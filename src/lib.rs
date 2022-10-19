@@ -1,7 +1,7 @@
-pub mod hammer_map;
+pub mod flail_map;
 pub mod list;
 pub mod map;
 
-pub use hammer_map::HammerMap;
+pub use flail_map::FlailMap;
 pub use list::List;
 pub use map::Map;

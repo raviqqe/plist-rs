@@ -8,12 +8,12 @@ use std::{
     rc::Rc,
 };
 
-pub struct HammerMap<K, V> {
+pub struct FlailMap<K, V> {
     chain: Map<K, V>,
     head: Rc<HashMap<K, V>>,
 }
 
-impl<K, V> HammerMap<K, V> {
+impl<K, V> FlailMap<K, V> {
     pub fn new(head: HashMap<K, V>) -> Self {
         Self {
             chain: Default::default(),
@@ -36,7 +36,7 @@ impl<K, V> HammerMap<K, V> {
     }
 }
 
-impl<K: Eq + Hash, V> HammerMap<K, V> {
+impl<K: Eq + Hash, V> FlailMap<K, V> {
     pub fn len(&self) -> usize {
         let mut set = HashSet::new();
 
@@ -74,7 +74,7 @@ impl<K: Eq + Hash, V> HammerMap<K, V> {
     }
 }
 
-impl<Q: Eq + Hash + ?Sized, K: Eq + Hash, V> Index<&Q> for HammerMap<K, V>
+impl<Q: Eq + Hash + ?Sized, K: Eq + Hash, V> Index<&Q> for FlailMap<K, V>
 where
     K: Borrow<Q>,
 {
@@ -85,7 +85,7 @@ where
     }
 }
 
-impl<K, V> Clone for HammerMap<K, V> {
+impl<K, V> Clone for FlailMap<K, V> {
     fn clone(&self) -> Self {
         Self {
             chain: self.chain.clone(),
@@ -94,13 +94,13 @@ impl<K, V> Clone for HammerMap<K, V> {
     }
 }
 
-impl<K, V> Default for HammerMap<K, V> {
+impl<K, V> Default for FlailMap<K, V> {
     fn default() -> Self {
         Self::new(Default::default())
     }
 }
 
-impl<K: Debug + Eq + Hash, V: Debug> Debug for HammerMap<K, V> {
+impl<K: Debug + Eq + Hash, V: Debug> Debug for FlailMap<K, V> {
     fn fmt(&self, formatter: &mut Formatter) -> fmt::Result {
         write!(formatter, "{{")?;
 
@@ -118,7 +118,7 @@ impl<K: Debug + Eq + Hash, V: Debug> Debug for HammerMap<K, V> {
     }
 }
 
-impl<K: Eq + Hash, V: PartialEq> PartialEq for HammerMap<K, V> {
+impl<K: Eq + Hash, V: PartialEq> PartialEq for FlailMap<K, V> {
     fn eq(&self, other: &Self) -> bool {
         let set = self.into_iter().collect::<HashMap<_, _>>();
 
@@ -136,26 +136,26 @@ impl<K: Eq + Hash, V: PartialEq> PartialEq for HammerMap<K, V> {
     }
 }
 
-impl<K: Eq + Hash, V: Eq> Eq for HammerMap<K, V> {}
+impl<K: Eq + Hash, V: Eq> Eq for FlailMap<K, V> {}
 
-impl<K: Eq + Hash, V> FromIterator<(K, V)> for HammerMap<K, V> {
+impl<K: Eq + Hash, V> FromIterator<(K, V)> for FlailMap<K, V> {
     fn from_iter<I: IntoIterator<Item = (K, V)>>(iterator: I) -> Self {
         Self::new(iterator.into_iter().collect())
     }
 }
 
-pub struct HammerMapIterator<'a, K: Eq + Hash, V> {
+pub struct FlailMapIterator<'a, K: Eq + Hash, V> {
     chain_iterator: map::MapIterator<'a, K, V>,
     head_iterator: hash_map::Iter<'a, K, V>,
     set: HashSet<&'a K>,
 }
 
-impl<'a, K: Eq + Hash, V> IntoIterator for &'a HammerMap<K, V> {
+impl<'a, K: Eq + Hash, V> IntoIterator for &'a FlailMap<K, V> {
     type Item = (&'a K, &'a V);
-    type IntoIter = HammerMapIterator<'a, K, V>;
+    type IntoIter = FlailMapIterator<'a, K, V>;
 
     fn into_iter(self) -> Self::IntoIter {
-        HammerMapIterator {
+        FlailMapIterator {
             chain_iterator: self.chain.into_iter(),
             head_iterator: self.head.iter(),
             set: Default::default(),
@@ -163,7 +163,7 @@ impl<'a, K: Eq + Hash, V> IntoIterator for &'a HammerMap<K, V> {
     }
 }
 
-impl<'a, K: Eq + Hash, V> Iterator for HammerMapIterator<'a, K, V> {
+impl<'a, K: Eq + Hash, V> Iterator for FlailMapIterator<'a, K, V> {
     type Item = (&'a K, &'a V);
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -196,73 +196,73 @@ mod tests {
 
     #[test]
     fn new() {
-        HammerMap::<(), ()>::new(Default::default());
+        FlailMap::<(), ()>::new(Default::default());
     }
 
     #[test]
     fn equal() {
         assert_eq!(
-            HammerMap::<(), ()>::new(Default::default()),
-            HammerMap::new(Default::default())
+            FlailMap::<(), ()>::new(Default::default()),
+            FlailMap::new(Default::default())
         );
         assert_ne!(
-            HammerMap::new(Default::default()),
-            HammerMap::new(Default::default()).insert(42, 42)
+            FlailMap::new(Default::default()),
+            FlailMap::new(Default::default()).insert(42, 42)
         );
         assert_eq!(
-            HammerMap::new(Default::default()).insert(42, 42),
-            HammerMap::new(Default::default()).insert(42, 42)
+            FlailMap::new(Default::default()).insert(42, 42),
+            FlailMap::new(Default::default()).insert(42, 42)
         );
         assert_eq!(
-            HammerMap::new(Default::default()).insert(42, 42),
-            HammerMap::new(Default::default())
+            FlailMap::new(Default::default()).insert(42, 42),
+            FlailMap::new(Default::default())
                 .insert(42, 42)
                 .insert(42, 42)
         );
         assert_ne!(
-            HammerMap::new(Default::default()).insert(1, 1),
-            HammerMap::new(Default::default()).insert(1, 1).insert(2, 2)
+            FlailMap::new(Default::default()).insert(1, 1),
+            FlailMap::new(Default::default()).insert(1, 1).insert(2, 2)
         );
         assert_eq!(
-            HammerMap::new(Default::default()).insert(2, 2).insert(1, 1),
-            HammerMap::new(Default::default()).insert(1, 1).insert(2, 2)
+            FlailMap::new(Default::default()).insert(2, 2).insert(1, 1),
+            FlailMap::new(Default::default()).insert(1, 1).insert(2, 2)
         );
         assert_eq!(
-            HammerMap::new([(2, 2)].into_iter().collect()).insert(1, 1),
-            HammerMap::new(Default::default()).insert(1, 1).insert(2, 2)
+            FlailMap::new([(2, 2)].into_iter().collect()).insert(1, 1),
+            FlailMap::new(Default::default()).insert(1, 1).insert(2, 2)
         );
         assert_eq!(
-            HammerMap::new([(1, 1), (2, 2)].into_iter().collect()),
-            HammerMap::new(Default::default()).insert(1, 1).insert(2, 2)
+            FlailMap::new([(1, 1), (2, 2)].into_iter().collect()),
+            FlailMap::new(Default::default()).insert(1, 1).insert(2, 2)
         );
     }
 
     #[test]
     fn len() {
-        assert_eq!(HammerMap::<(), ()>::new(Default::default()).len(), 0);
-        assert_eq!(HammerMap::new(Default::default()).insert(1, 1).len(), 1);
+        assert_eq!(FlailMap::<(), ()>::new(Default::default()).len(), 0);
+        assert_eq!(FlailMap::new(Default::default()).insert(1, 1).len(), 1);
         assert_eq!(
-            HammerMap::new(Default::default())
+            FlailMap::new(Default::default())
                 .insert(1, 1)
                 .insert(1, 1)
                 .len(),
             1
         );
         assert_eq!(
-            HammerMap::new(Default::default())
+            FlailMap::new(Default::default())
                 .insert(1, 1)
                 .insert(2, 2)
                 .len(),
             2
         );
         assert_eq!(
-            HammerMap::new([(1, 1)].into_iter().collect())
+            FlailMap::new([(1, 1)].into_iter().collect())
                 .insert(1, 1)
                 .len(),
             1
         );
         assert_eq!(
-            HammerMap::new([(1, 1)].into_iter().collect())
+            FlailMap::new([(1, 1)].into_iter().collect())
                 .insert(2, 2)
                 .len(),
             2
@@ -271,14 +271,14 @@ mod tests {
 
     #[test]
     fn is_empty() {
-        assert!(HammerMap::<(), ()>::new(Default::default()).is_empty());
-        assert!(!HammerMap::new(Default::default()).insert(1, 1).is_empty());
-        assert!(!HammerMap::new([(1, 1)].into_iter().collect()).is_empty());
+        assert!(FlailMap::<(), ()>::new(Default::default()).is_empty());
+        assert!(!FlailMap::new(Default::default()).insert(1, 1).is_empty());
+        assert!(!FlailMap::new([(1, 1)].into_iter().collect()).is_empty());
     }
 
     #[test]
     fn get() {
-        let map = HammerMap::new(Default::default()).insert(1, 2).insert(3, 4);
+        let map = FlailMap::new(Default::default()).insert(1, 2).insert(3, 4);
 
         assert_eq!(map.get(&1), Some(&2));
         assert_eq!(map.get(&3), Some(&4));
@@ -287,7 +287,7 @@ mod tests {
 
     #[test]
     fn get_from_head() {
-        let map = HammerMap::new([(1, 2)].into_iter().collect()).insert(3, 4);
+        let map = FlailMap::new([(1, 2)].into_iter().collect()).insert(3, 4);
 
         assert_eq!(map.get(&1), Some(&2));
         assert_eq!(map.get(&3), Some(&4));
@@ -296,14 +296,14 @@ mod tests {
 
     #[test]
     fn contains() {
-        assert!(HammerMap::new(Default::default())
+        assert!(FlailMap::new(Default::default())
             .insert(1, 1)
             .insert(2, 2)
             .contains_key(&2));
-        assert!(HammerMap::new([(1, 1)].into_iter().collect())
+        assert!(FlailMap::new([(1, 1)].into_iter().collect())
             .insert(1, 1)
             .contains_key(&1));
-        assert!(HammerMap::new([(1, 1)].into_iter().collect())
+        assert!(FlailMap::new([(1, 1)].into_iter().collect())
             .insert(2, 2)
             .contains_key(&2));
     }
@@ -311,12 +311,12 @@ mod tests {
     #[test]
     fn insert_many() {
         assert_eq!(
-            HammerMap::new(Default::default())
+            FlailMap::new(Default::default())
                 .insert(1, 1)
                 .insert(2, 2)
                 .into_iter()
                 .collect::<Vec<_>>(),
-            HammerMap::new(Default::default())
+            FlailMap::new(Default::default())
                 .insert_many([(1, 1), (2, 2)])
                 .into_iter()
                 .collect::<Vec<_>>(),
@@ -326,7 +326,7 @@ mod tests {
     #[test]
     fn into_iter() {
         assert_eq!(
-            HammerMap::new(Default::default())
+            FlailMap::new(Default::default())
                 .insert(1, 1)
                 .insert(2, 2)
                 .into_iter()
@@ -338,7 +338,7 @@ mod tests {
     #[test]
     fn into_iter_duplicates() {
         assert_eq!(
-            HammerMap::new(Default::default())
+            FlailMap::new(Default::default())
                 .insert(1, 1)
                 .insert(1, 1)
                 .into_iter()
@@ -346,7 +346,7 @@ mod tests {
             1
         );
         assert_eq!(
-            HammerMap::new([(1, 1)].into_iter().collect())
+            FlailMap::new([(1, 1)].into_iter().collect())
                 .insert(1, 1)
                 .insert(1, 1)
                 .into_iter()
@@ -358,32 +358,32 @@ mod tests {
     #[test]
     fn from_iter() {
         assert_eq!(
-            HammerMap::from_iter([(1, 1), (2, 2)]),
-            HammerMap::from_iter([(1, 1), (2, 2)]),
+            FlailMap::from_iter([(1, 1), (2, 2)]),
+            FlailMap::from_iter([(1, 1), (2, 2)]),
         );
     }
 
     #[test]
     fn debug() {
         assert_eq!(
-            format!("{:?}", HammerMap::<(), ()>::new(Default::default())),
+            format!("{:?}", FlailMap::<(), ()>::new(Default::default())),
             "{}"
         );
         assert_eq!(
-            format!("{:?}", HammerMap::new(Default::default()).insert(1, 2)),
+            format!("{:?}", FlailMap::new(Default::default()).insert(1, 2)),
             "{1: 2}"
         );
         assert_eq!(
             format!(
                 "{:?}",
-                HammerMap::new(Default::default()).insert_many([(1, 2), (3, 4)])
+                FlailMap::new(Default::default()).insert_many([(1, 2), (3, 4)])
             ),
             "{3: 4, 1: 2}"
         );
         assert_eq!(
             format!(
                 "{:?}",
-                HammerMap::new(Default::default()).insert_many([(1, 2), (3, 4), (5, 6)])
+                FlailMap::new(Default::default()).insert_many([(1, 2), (3, 4), (5, 6)])
             ),
             "{5: 6, 3: 4, 1: 2}"
         );
@@ -391,7 +391,7 @@ mod tests {
         assert_eq!(
             format!(
                 "{:?}",
-                HammerMap::new([(5, 6)].into_iter().collect()).insert_many([(3, 4), (1, 2)])
+                FlailMap::new([(5, 6)].into_iter().collect()).insert_many([(3, 4), (1, 2)])
             ),
             format!(
                 "{:?}",
