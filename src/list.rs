@@ -1,15 +1,15 @@
-use std::{borrow::Borrow, sync::Arc};
+use std::{borrow::Borrow, rc::Rc};
 
 #[derive(Clone, Debug, Eq, PartialEq, PartialOrd, Ord)]
 pub struct List<T> {
-    cons: Option<Arc<Cons<T>>>,
+    cons: Option<Rc<Cons<T>>>,
     size: usize,
 }
 
 #[derive(Clone, Debug, Default, Eq, PartialEq, PartialOrd, Ord)]
 struct Cons<T> {
     head: T,
-    tail: Option<Arc<Cons<T>>>,
+    tail: Option<Rc<Cons<T>>>,
 }
 
 impl<T> List<T> {
@@ -30,7 +30,7 @@ impl<T> List<T> {
 
     pub fn push_front(&self, head: T) -> Self {
         Self {
-            cons: Arc::new(Cons {
+            cons: Rc::new(Cons {
                 head,
                 tail: self.cons.clone(),
             })
@@ -76,7 +76,7 @@ impl<T> FromIterator<T> for List<T> {
     }
 }
 
-pub struct ListIterator<'a, T>(&'a Option<Arc<Cons<T>>>);
+pub struct ListIterator<'a, T>(&'a Option<Rc<Cons<T>>>);
 
 impl<'a, T> IntoIterator for &'a List<T> {
     type Item = &'a T;
