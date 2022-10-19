@@ -32,13 +32,7 @@ impl<K, V> Map<K, V> {
     }
 
     pub fn insert_many(&self, iterator: impl IntoIterator<Item = (K, V)>) -> Self {
-        let mut map = self.clone();
-
-        for (key, value) in iterator {
-            map = map.insert(key, value);
-        }
-
-        map
+        Self(self.0.push_front_many(iterator))
     }
 }
 

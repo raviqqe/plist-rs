@@ -39,6 +39,16 @@ impl<T> List<T> {
         }
     }
 
+    pub fn push_front_many(&self, iterator: impl IntoIterator<Item = T>) -> Self {
+        let mut list = self.clone();
+
+        for value in iterator {
+            list = list.push_front(value);
+        }
+
+        list
+    }
+
     pub fn pop_front(&self) -> Self {
         if let Some(cons) = &self.cons {
             Self {
