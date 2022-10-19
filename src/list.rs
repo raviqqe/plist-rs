@@ -85,13 +85,7 @@ impl<T> Default for List<T> {
 
 impl<T> FromIterator<T> for List<T> {
     fn from_iter<I: IntoIterator<Item = T>>(iterator: I) -> Self {
-        let mut list = List::new();
-
-        for value in iterator {
-            list = list.push_front(value);
-        }
-
-        list
+        Self::new().push_front_many(iterator)
     }
 }
 
@@ -160,6 +154,14 @@ mod tests {
     #[test]
     fn contains() {
         assert!(List::new().push_front(1).push_front(2).contains(&2),);
+    }
+
+    #[test]
+    fn push_front_many() {
+        assert_eq!(
+            List::new().push_front(1).push_front(2),
+            List::new().push_front_many([1, 2]),
+        );
     }
 
     #[test]

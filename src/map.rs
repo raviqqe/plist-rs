@@ -112,7 +112,7 @@ impl<K: Eq + Hash, V: PartialEq> PartialEq for Map<K, V> {
 
 impl<K, V> FromIterator<(K, V)> for Map<K, V> {
     fn from_iter<I: IntoIterator<Item = (K, V)>>(iterator: I) -> Self {
-        Self(List::from_iter(iterator))
+        Self::new().insert_many(iterator)
     }
 }
 
@@ -205,6 +205,21 @@ mod tests {
     #[test]
     fn contains() {
         assert!(Map::new().insert(1, 1).insert(2, 2).contains_key(&2),);
+    }
+
+    #[test]
+    fn insert_many() {
+        assert_eq!(
+            Map::new()
+                .insert(1, 1)
+                .insert(2, 2)
+                .into_iter()
+                .collect::<Vec<_>>(),
+            Map::new()
+                .insert_many([(1, 1), (2, 2)])
+                .into_iter()
+                .collect::<Vec<_>>(),
+        );
     }
 
     #[test]
