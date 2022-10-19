@@ -43,19 +43,13 @@ impl<K, V> ChainMap<K, V> {
     }
 }
 
-impl<K: Eq + Hash, V> Map<K, V> {
+impl<K: Eq + Hash, V> ChainMap<K, V> {
     pub fn len(&self) -> usize {
-        let mut set = HashSet::new();
-
-        for key in self.keys() {
-            set.insert(key);
-        }
-
-        set.len()
+        self.chain.len() + self.head.len()
     }
 
     pub fn is_empty(&self) -> bool {
-        self.0.is_empty()
+        self.chain.is_empty() && self.head.is_empty()
     }
 
     pub fn contains_key<Q: Eq + ?Sized>(&self, key: &Q) -> bool
@@ -74,7 +68,7 @@ impl<K: Eq + Hash, V> Map<K, V> {
     }
 }
 
-impl<Q: Eq + ?Sized, K: Eq, V> Index<&Q> for Map<K, V>
+impl<Q: Eq + ?Sized, K: Eq, V> Index<&Q> for ChainMap<K, V>
 where
     K: Borrow<Q>,
 {
