@@ -180,8 +180,13 @@ mod tests {
     #[test]
     fn from_iter() {
         assert_eq!(
-            [1, 2].into_iter().collect::<List<_>>(),
+            List::from_iter([1, 2]),
             List::new().push_front(1).push_front(2)
         );
+    }
+
+    #[test]
+    fn debug() {
+        assert_eq!(format!("{:?}", List::from_iter([1, 2])), "[2, 1]");
     }
 }
