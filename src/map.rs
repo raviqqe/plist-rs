@@ -2,11 +2,11 @@ use crate::{List, ListIterator};
 use std::{
     borrow::Borrow,
     collections::{HashMap, HashSet},
+    fmt::{self, Debug, Formatter},
     hash::Hash,
     ops::Index,
 };
 
-#[derive(Debug)]
 pub struct Map<K, V>(List<(K, V)>);
 
 impl<K, V> Map<K, V> {
@@ -87,6 +87,24 @@ impl<K, V> Clone for Map<K, V> {
 impl<K, V> Default for Map<K, V> {
     fn default() -> Self {
         Self::new()
+    }
+}
+
+impl<K: Debug + Eq + Hash, V: Debug> Debug for Map<K, V> {
+    fn fmt(&self, formatter: &mut Formatter) -> fmt::Result {
+        write!(formatter, "{{")?;
+
+        for (index, (key, value)) in self.into_iter().enumerate() {
+            write!(formatter, "{:?}: {:?}", key, value)?;
+
+            if index < self.len() - 1 {
+                write!(formatter, ", ")?;
+            }
+        }
+
+        write!(formatter, "}}")?;
+
+        Ok(())
     }
 }
 
@@ -252,6 +270,20 @@ mod tests {
         assert_eq!(
             Map::from_iter([(1, 1), (2, 2)]),
             Map::from_iter([(1, 1), (2, 2), (1, 1)]),
+        );
+    }
+
+    #[test]
+    fn debug() {
+        assert_eq!(format!("{:?}", Map::<(), ()>::new()), "{}");
+        assert_eq!(format!("{:?}", Map::new().insert(1, 2)), "{1: 2}");
+        assert_eq!(
+            format!("{:?}", Map::from_iter([(1, 2), (3, 4)])),
+            "{3: 4, 1: 2}"
+        );
+        assert_eq!(
+            format!("{:?}", Map::from_iter([(1, 2), (3, 4), (5, 6)])),
+            "{5: 6, 3: 4, 1: 2}"
         );
     }
 }
