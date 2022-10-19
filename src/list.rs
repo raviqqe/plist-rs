@@ -212,5 +212,6 @@ mod tests {
         assert_eq!(format!("{:?}", List::<()>::new()), "[]");
         assert_eq!(format!("{:?}", List::new().push_front(1)), "[1]");
         assert_eq!(format!("{:?}", List::from_iter([1, 2])), "[2, 1]");
+        assert_eq!(format!("{:?}", List::from_iter([1, 2, 3])), "[3, 2, 1]");
     }
 }
