@@ -1,7 +1,7 @@
-use crate::Map;
+use crate::{Map, MapIterator};
 use std::{
     borrow::Borrow,
-    collections::{HashMap, HashSet},
+    collections::{hash_map, HashMap, HashSet},
     fmt::{self, Debug, Formatter},
     hash::Hash,
     ops::Index,
@@ -138,30 +138,32 @@ impl<K: Eq + Hash, V: PartialEq> PartialEq for ChainMap<K, V> {
 
 impl<K: Eq + Hash, V: Eq> Eq for ChainMap<K, V> {}
 
-impl<K, V> FromIterator<(K, V)> for Map<K, V> {
+impl<K: Eq + Hash, V> FromIterator<(K, V)> for ChainMap<K, V> {
     fn from_iter<I: IntoIterator<Item = (K, V)>>(iterator: I) -> Self {
-        Self::new().insert_many(iterator)
+        Self::new(iterator.into_iter().collect())
     }
 }
 
-pub struct MapIterator<'a, K: Eq + Hash, V> {
-    iterator: ListIterator<'a, (K, V)>,
+pub struct ChainMapIterator<'a, K: Eq + Hash, V> {
+    chain_iterator: MapIterator<'a, K, V>,
+    head_iterator: hash_map::IntoIter<K, V>,
     set: HashSet<&'a K>,
 }
 
-impl<'a, K: Eq + Hash, V> IntoIterator for &'a Map<K, V> {
+impl<'a, K: Eq + Hash, V> IntoIterator for &'a ChainMap<K, V> {
     type Item = (&'a K, &'a V);
-    type IntoIter = MapIterator<'a, K, V>;
+    type IntoIter = ChainMapIterator<'a, K, V>;
 
     fn into_iter(self) -> Self::IntoIter {
-        MapIterator {
+        ChainMapIterator {
+            chain_iterator: self.chain.into_iter(),
+            head_iterator: self.head.into_iter(),
             set: Default::default(),
-            iterator: self.0.into_iter(),
         }
     }
 }
 
-impl<'a, K: Eq + Hash, V> Iterator for MapIterator<'a, K, V> {
+impl<'a, K: Eq + Hash, V> Iterator for ChainMapIterator<'a, K, V> {
     type Item = (&'a K, &'a V);
 
     fn next(&mut self) -> Option<Self::Item> {
