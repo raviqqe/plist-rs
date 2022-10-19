@@ -72,4 +72,17 @@ mod tests {
         assert_eq!(List::<()>::new(), List::new());
         assert_eq!(List::new().push_front(42), List::new().push_front(42));
     }
+
+    #[test]
+    fn into_iter() {
+        assert_eq!(
+            List::new()
+                .push_front(1)
+                .push_front(2)
+                .into_iter()
+                .copied()
+                .collect::<Vec<_>>(),
+            vec![2, 1]
+        );
+    }
 }
