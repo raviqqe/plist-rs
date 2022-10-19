@@ -1,6 +1,6 @@
 use std::{borrow::Borrow, rc::Rc};
 
-#[derive(Clone, Debug, Eq, PartialEq, PartialOrd, Ord)]
+#[derive(Debug, Eq, PartialEq, PartialOrd, Ord)]
 pub struct List<T> {
     cons: Option<Rc<Cons<T>>>,
     size: usize,
@@ -55,6 +55,15 @@ impl<T> List<T> {
         T: Borrow<S>,
     {
         self.into_iter().any(|other| other.borrow() == value)
+    }
+}
+
+impl<T> Clone for List<T> {
+    fn clone(&self) -> Self {
+        Self {
+            cons: self.cons.clone(),
+            size: self.size,
+        }
     }
 }
 

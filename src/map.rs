@@ -6,7 +6,7 @@ use std::{
     ops::Index,
 };
 
-#[derive(Clone, Debug)]
+#[derive(Debug)]
 pub struct Map<K, V>(List<(K, V)>);
 
 impl<K, V> Map<K, V> {
@@ -29,6 +29,16 @@ impl<K, V> Map<K, V> {
 
     pub fn insert(&self, key: K, value: V) -> Self {
         Self(self.0.push_front((key, value)))
+    }
+
+    pub fn insert_many(&self, iterator: impl IntoIterator<Item = (K, V)>) -> Self {
+        let mut map = self.clone();
+
+        for (key, value) in iterator {
+            map = map.insert(key, value);
+        }
+
+        map
     }
 }
 
@@ -71,6 +81,12 @@ where
 
     fn index(&self, key: &Q) -> &Self::Output {
         self.get(key).expect("existent key")
+    }
+}
+
+impl<K, V> Clone for Map<K, V> {
+    fn clone(&self) -> Self {
+        Self(self.0.clone())
     }
 }
 
