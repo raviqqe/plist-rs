@@ -2,11 +2,11 @@ use crate::{List, ListIterator};
 use std::{
     borrow::Borrow,
     collections::{HashMap, HashSet},
+    fmt::{self, Debug, Formatter},
     hash::Hash,
     ops::Index,
 };
 
-#[derive(Debug)]
 pub struct Map<K, V>(List<(K, V)>);
 
 impl<K, V> Map<K, V> {
@@ -90,6 +90,24 @@ impl<K, V> Default for Map<K, V> {
     }
 }
 
+impl<K: Debug + Eq + Hash, V: Debug> Debug for Map<K, V> {
+    fn fmt(&self, formatter: &mut Formatter) -> fmt::Result {
+        write!(formatter, "{{")?;
+
+        for (index, (key, value)) in self.into_iter().enumerate() {
+            write!(formatter, "{:?}: {:?}", key, value)?;
+
+            if index < self.len() - 1 {
+                write!(formatter, ", ")?;
+            }
+        }
+
+        write!(formatter, "}}")?;
+
+        Ok(())
+    }
+}
+
 impl<K: Eq + Hash, V: Eq> Eq for Map<K, V> {}
 
 impl<K: Eq + Hash, V: PartialEq> PartialEq for Map<K, V> {
@@ -154,6 +172,7 @@ impl<'a, K: Eq + Hash, V> Iterator for MapIterator<'a, K, V> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::collections::BTreeMap;
 
     #[test]
     fn new() {
@@ -252,6 +271,25 @@ mod tests {
         assert_eq!(
             Map::from_iter([(1, 1), (2, 2)]),
             Map::from_iter([(1, 1), (2, 2), (1, 1)]),
+        );
+    }
+
+    #[test]
+    fn debug() {
+        assert_eq!(format!("{:?}", Map::<(), ()>::new()), "{}");
+        assert_eq!(format!("{:?}", Map::new().insert(1, 2)), "{1: 2}");
+        assert_eq!(
+            format!("{:?}", Map::from_iter([(1, 2), (3, 4)])),
+            "{3: 4, 1: 2}"
+        );
+        assert_eq!(
+            format!("{:?}", Map::from_iter([(1, 2), (3, 4), (5, 6)])),
+            "{5: 6, 3: 4, 1: 2}"
+        );
+
+        assert_eq!(
+            format!("{:?}", Map::from_iter([(3, 4), (1, 2)])),
+            format!("{:?}", BTreeMap::<_, _>::from_iter([(1, 2), (3, 4)]))
         );
     }
 }
