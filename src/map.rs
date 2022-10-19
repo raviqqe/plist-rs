@@ -171,9 +171,8 @@ impl<'a, K: Eq + Hash, V> Iterator for MapIterator<'a, K, V> {
 
 #[cfg(test)]
 mod tests {
-    use std::collections::BTreeMap;
-
     use super::*;
+    use std::collections::BTreeMap;
 
     #[test]
     fn new() {
