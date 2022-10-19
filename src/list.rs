@@ -1,6 +1,10 @@
-use std::{borrow::Borrow, rc::Rc};
+use std::{
+    borrow::Borrow,
+    fmt::{self, Debug, Formatter},
+    rc::Rc,
+};
 
-#[derive(Debug, Eq, PartialEq, PartialOrd, Ord)]
+#[derive(Eq, PartialEq, PartialOrd, Ord)]
 pub struct List<T> {
     cons: Option<Rc<Cons<T>>>,
     size: usize,
@@ -80,6 +84,24 @@ impl<T> Clone for List<T> {
 impl<T> Default for List<T> {
     fn default() -> Self {
         Self::new()
+    }
+}
+
+impl<T: Debug> Debug for List<T> {
+    fn fmt(&self, formatter: &mut Formatter) -> fmt::Result {
+        write!(formatter, "[")?;
+
+        for (index, value) in self.into_iter().enumerate() {
+            write!(formatter, "{:?}", value)?;
+
+            if index < self.len() - 1 {
+                write!(formatter, ", ")?;
+            }
+        }
+
+        write!(formatter, "]")?;
+
+        Ok(())
     }
 }
 
@@ -187,6 +209,8 @@ mod tests {
 
     #[test]
     fn debug() {
+        assert_eq!(format!("{:?}", List::<()>::new()), "[]");
+        assert_eq!(format!("{:?}", List::new().push_front(1)), "[1]");
         assert_eq!(format!("{:?}", List::from_iter([1, 2])), "[2, 1]");
     }
 }
