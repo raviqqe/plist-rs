@@ -20,6 +20,14 @@ impl<T> List<T> {
         }
     }
 
+    pub fn len(&self) -> usize {
+        self.size
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.size == 0
+    }
+
     pub fn push_front(&self, head: T) -> Self {
         Self {
             cons: Arc::new(Cons {
@@ -89,6 +97,19 @@ mod tests {
         assert_ne!(List::new(), List::new().push_front(42));
         assert_eq!(List::<()>::new(), List::new());
         assert_eq!(List::new().push_front(42), List::new().push_front(42));
+    }
+
+    #[test]
+    fn len() {
+        assert_eq!(List::<()>::new().len(), 0);
+        assert_eq!(List::new().push_front(42).len(), 1);
+        assert_eq!(List::new().push_front(42).push_front(42).len(), 2);
+    }
+
+    #[test]
+    fn is_empty() {
+        assert!(List::<()>::new().is_empty());
+        assert!(!List::new().push_front(42).is_empty());
     }
 
     #[test]
