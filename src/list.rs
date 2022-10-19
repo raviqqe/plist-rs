@@ -118,6 +118,14 @@ mod tests {
     }
 
     #[test]
+    fn ord() {
+        assert!(List::new() < List::new().push_front(1));
+        assert!(List::new().push_front(1) < List::new().push_front(2));
+        assert!(List::new().push_front(1) < List::new().push_front(1).push_front(1));
+        assert!(List::new().push_front(1).push_front(1) < List::new().push_front(2).push_front(1));
+    }
+
+    #[test]
     fn len() {
         assert_eq!(List::<()>::new().len(), 0);
         assert_eq!(List::new().push_front(42).len(), 1);
