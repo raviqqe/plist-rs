@@ -28,9 +28,9 @@ impl<K, V> FlailMap<K, V> {
         }
     }
 
-    pub fn insert_many(&self, iterator: impl IntoIterator<Item = (K, V)>) -> Self {
+    pub fn insert_iter(&self, iterator: impl IntoIterator<Item = (K, V)>) -> Self {
         Self {
-            chain: self.chain.insert_many(iterator),
+            chain: self.chain.insert_iter(iterator),
             head: self.head.clone(),
         }
     }
@@ -309,7 +309,7 @@ mod tests {
     }
 
     #[test]
-    fn insert_many() {
+    fn insert_iter() {
         assert_eq!(
             FlailMap::new(Default::default())
                 .insert(1, 1)
@@ -317,7 +317,7 @@ mod tests {
                 .into_iter()
                 .collect::<Vec<_>>(),
             FlailMap::new(Default::default())
-                .insert_many([(1, 1), (2, 2)])
+                .insert_iter([(1, 1), (2, 2)])
                 .into_iter()
                 .collect::<Vec<_>>(),
         );
@@ -376,14 +376,14 @@ mod tests {
         assert_eq!(
             format!(
                 "{:?}",
-                FlailMap::new(Default::default()).insert_many([(1, 2), (3, 4)])
+                FlailMap::new(Default::default()).insert_iter([(1, 2), (3, 4)])
             ),
             "{3: 4, 1: 2}"
         );
         assert_eq!(
             format!(
                 "{:?}",
-                FlailMap::new(Default::default()).insert_many([(1, 2), (3, 4), (5, 6)])
+                FlailMap::new(Default::default()).insert_iter([(1, 2), (3, 4), (5, 6)])
             ),
             "{5: 6, 3: 4, 1: 2}"
         );
@@ -391,7 +391,7 @@ mod tests {
         assert_eq!(
             format!(
                 "{:?}",
-                FlailMap::new([(5, 6)].into_iter().collect()).insert_many([(3, 4), (1, 2)])
+                FlailMap::new([(5, 6)].into_iter().collect()).insert_iter([(3, 4), (1, 2)])
             ),
             format!(
                 "{:?}",

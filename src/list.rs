@@ -43,7 +43,7 @@ impl<T> List<T> {
         }
     }
 
-    pub fn push_front_many(&self, iterator: impl IntoIterator<Item = T>) -> Self {
+    pub fn push_front_iter(&self, iterator: impl IntoIterator<Item = T>) -> Self {
         let mut list = self.clone();
 
         for value in iterator {
@@ -107,7 +107,7 @@ impl<T: Debug> Debug for List<T> {
 
 impl<T> FromIterator<T> for List<T> {
     fn from_iter<I: IntoIterator<Item = T>>(iterator: I) -> Self {
-        Self::new().push_front_many(iterator)
+        Self::new().push_front_iter(iterator)
     }
 }
 
@@ -179,10 +179,10 @@ mod tests {
     }
 
     #[test]
-    fn push_front_many() {
+    fn push_front_iter() {
         assert_eq!(
             List::new().push_front(1).push_front(2),
-            List::new().push_front_many([1, 2]),
+            List::new().push_front_iter([1, 2]),
         );
     }
 

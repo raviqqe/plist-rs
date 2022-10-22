@@ -31,8 +31,8 @@ impl<K, V> Map<K, V> {
         Self(self.0.push_front((key, value)))
     }
 
-    pub fn insert_many(&self, iterator: impl IntoIterator<Item = (K, V)>) -> Self {
-        Self(self.0.push_front_many(iterator))
+    pub fn insert_iter(&self, iterator: impl IntoIterator<Item = (K, V)>) -> Self {
+        Self(self.0.push_front_iter(iterator))
     }
 }
 
@@ -130,7 +130,7 @@ impl<K: Eq + Hash, V: PartialEq> PartialEq for Map<K, V> {
 
 impl<K, V> FromIterator<(K, V)> for Map<K, V> {
     fn from_iter<I: IntoIterator<Item = (K, V)>>(iterator: I) -> Self {
-        Self::new().insert_many(iterator)
+        Self::new().insert_iter(iterator)
     }
 }
 
@@ -227,7 +227,7 @@ mod tests {
     }
 
     #[test]
-    fn insert_many() {
+    fn insert_iter() {
         assert_eq!(
             Map::new()
                 .insert(1, 1)
@@ -235,7 +235,7 @@ mod tests {
                 .into_iter()
                 .collect::<Vec<_>>(),
             Map::new()
-                .insert_many([(1, 1), (2, 2)])
+                .insert_iter([(1, 1), (2, 2)])
                 .into_iter()
                 .collect::<Vec<_>>(),
         );
